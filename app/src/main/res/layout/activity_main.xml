@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout
+    android:id="@+id/mainView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.qoli.myapplication.MainActivity"
+    >
+
+    <LinearLayout
+        android:layout_width="368dp"
+        android:layout_height="495dp"
+        android:orientation="vertical"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="25dp"
+            android:text="基於 Android AccessibilityService 特性增強與 NanoPi 的 HomeBridge 通信可能性。"
+            android:textAlignment="viewStart" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="25dp"
+            android:text="在使用之前，請先在設定上，指定要監視的設備。"
+            android:textAlignment="viewStart" />
+
+        <Button
+            android:id="@+id/Accessibility"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="25dp"
+            android:onClick="onClick"
+            android:text="打開「無障礙」設定" />
+
+        <Button
+            android:id="@+id/AppSetting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="25dp"
+            android:onClick="onClick"
+            android:text="App 设定" />
+
+        <Button
+            android:id="@+id/Help"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="22dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="25dp"
+            android:onClick="onClick"
+            android:text="幫助" />
+
+    </LinearLayout>
+
+
+
+</android.support.constraint.ConstraintLayout>

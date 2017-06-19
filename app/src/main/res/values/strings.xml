@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">MiHomePlus</string>
+    <string name="description">MiHomePlus 只會關心 米家 App 的信息狀態。\n在激活 MiHomePlus「無障礙」選項后，將會啟動監視服務。</string>
+    <string name="title_activity_setting">Setting</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_about">About</string>
+    <string name="title_activity_help">Help</string>
+</resources>
