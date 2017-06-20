@@ -29,7 +29,7 @@ import io.socket.emitter.Emitter;
 public class MyAccessibility extends AccessibilityService {
     private static final String TAG = "MyAccessibility";
     private static final String Hosts = "http://192.168.1.104:3002";
-
+    private int Pong = 0;
     private Socket mSocket;
 
     /**
@@ -46,26 +46,21 @@ public class MyAccessibility extends AccessibilityService {
         // 休眠后會斷線…
 
         try {
-            mSocket = IO.socket(Hosts);
-
+            IO.Options options = new IO.Options();
+            options.timeout = 60 * 1000;
+            options.reconnection = true;
+            mSocket = IO.socket(Hosts,options);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
-        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                mSocket.emit("android", "onAccessibilityEvent ONLINE");
-            }
-
-        });
-
-        mSocket.on("update", onUpdate);
-        mSocket.on("Ping", onPing);
-
+        mSocket.on(Socket.EVENT_CONNECT, onConnect);
         mSocket.on(Socket.EVENT_DISCONNECT, onDisconnect);// 断开连接
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);// 连接异常
         mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectTimeoutError);// 连接超时
+
+        mSocket.on("update", onUpdate);
+        mSocket.on("Ping", onPing);
 
         mSocket.connect();
     }
@@ -73,6 +68,13 @@ public class MyAccessibility extends AccessibilityService {
     /**
      * Socket 相關函數
      */
+
+    private Emitter.Listener onConnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            mSocket.emit("android", "onAccessibilityEvent ONLINE");
+        }
+    };
 
     private Emitter.Listener onUpdate = new Emitter.Listener() {
         @Override
@@ -107,6 +109,7 @@ public class MyAccessibility extends AccessibilityService {
         public void call(Object... args) {
             Log.i(TAG, "断开连接 " + args[0]);
             mSocket.emit("android", "onAccessibilityEvent OFFLINE");
+            onSocketFail();
         }
     };
 
@@ -133,7 +136,8 @@ public class MyAccessibility extends AccessibilityService {
         public void call(final Object... args) {
             Thread socketThread = new Thread(new Runnable() {
                 public void run() {
-                    System.out.println("Socket.io send Pong ... ");
+                    Pong++;
+                    System.out.println("Socket.io send Pong ... " + Pong);
                     mSocket.emit("Pong", "Ping");
                 }
             });
@@ -142,7 +146,10 @@ public class MyAccessibility extends AccessibilityService {
     };
 
     private void onSocketFail() {
-        mSocket.off("update", onUpdate);
+        wakeAndUnlock(true);
+        startApp("com.xiaomi.smarthome");
+        initSocketHttp();
+        wakeAndUnlock(false);
     }
 
 
@@ -173,11 +180,10 @@ public class MyAccessibility extends AccessibilityService {
     @Override
     protected void onServiceConnected() {
         Log.i(TAG, "> 無障礙設定已經激活！");
-        startApp("com.xiaomi.smarthome");
         tellUser("MiHomePlus 服務已經激活.");
+        startApp("com.xiaomi.smarthome");
         initSocketHttp();
         networkTest();
-
     }
 
     /**
@@ -240,6 +246,7 @@ public class MyAccessibility extends AccessibilityService {
                 nodeAction("空調伴侶", "read");
                 nodeAction("電腦燈", "read");
                 nodeAction("落地燈", "read");
+                nodeAction("客廳空氣淨化器", "read");
             } else {
                 tellUser("< Mi >");
             }
