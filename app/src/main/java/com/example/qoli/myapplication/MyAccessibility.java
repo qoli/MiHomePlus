@@ -1,8 +1,6 @@
 package com.example.qoli.myapplication;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.KeyguardManager;
-import android.app.KeyguardManager.KeyguardLock;
 import android.content.Context;
 import android.content.Intent;
 import android.os.PowerManager;
@@ -30,7 +28,14 @@ import io.socket.emitter.Emitter;
 
 public class MyAccessibility extends AccessibilityService {
     private static final String TAG = "MyAccessibility";
+    private static final String Hosts = "http://192.168.1.104:3002";
+
     private Socket mSocket;
+
+    /**
+     * pidcat com.example.qoli.myapplication -l I
+     * terminal 指令
+     */
 
     /**
      * Socket
@@ -41,10 +46,9 @@ public class MyAccessibility extends AccessibilityService {
         // 休眠后會斷線…
 
         try {
-            // TODO URL 封裝為全局函數，配置檔
-            mSocket = IO.socket("http://192.168.1.104:3002");
+            mSocket = IO.socket(Hosts);
 
-        } catch ( URISyntaxException e ) {
+        } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
@@ -54,85 +58,127 @@ public class MyAccessibility extends AccessibilityService {
                 mSocket.emit("android", "onAccessibilityEvent ONLINE");
             }
 
-        }).on("update", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-
-                Log.i(TAG, "> Call: android action.");
-                wakeAndUnlock(true);
-
-                JSONObject obj = (JSONObject)args[0];
-                try {
-                    Log.i(TAG, "updateDevice: "+obj.get("updateDevice"));
-                    Log.i(TAG, "status: "+obj.get("status"));
-
-                    boolean onView = gotoView("AndroidAPI");
-
-                    if (onView) {
-                        nodeAction(obj.get("updateDevice").toString(),obj.get("status").toString());
-                    } else {
-                        Log.i(TAG, "> Call: No");
-                    }
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                wakeAndUnlock(false);
-            }
         });
+
+        mSocket.on("update", onUpdate);
+
+        mSocket.on(Socket.EVENT_DISCONNECT, onDisconnect);// 断开连接
+        mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);// 连接异常
+        mSocket.on(Socket.EVENT_CONNECT_TIMEOUT, onConnectTimeoutError);// 连接超时
 
         mSocket.connect();
     }
 
-    //锁屏、唤醒相关
-    private KeyguardManager  km;
-    private KeyguardLock kl;
-    private PowerManager pm;
-    private PowerManager.WakeLock wl;
+    /**
+     * Socket 相關函數
+     */
 
-    private void wakeAndUnlock(boolean b) {
-        if(b) {
-            //获取电源管理器对象
-            pm=(PowerManager) getSystemService(Context.POWER_SERVICE);
+    private Emitter.Listener onUpdate = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
 
-            //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
-            wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "bright");
+            Log.i(TAG, "> Call: android action.");
+            wakeAndUnlock(true);
 
-            //点亮屏幕
-            wl.acquire();
+            JSONObject obj = (JSONObject) args[0];
+            try {
+                Log.i(TAG, "updateDevice: " + obj.get("updateDevice"));
+                Log.i(TAG, "status: " + obj.get("status"));
 
-            //得到键盘锁管理器对象
-            km= (KeyguardManager)getSystemService(Context.KEYGUARD_SERVICE);
-            kl = km.newKeyguardLock("unLock");
+                boolean onView = gotoView("AndroidAPI");
 
-            //解锁
-            kl.disableKeyguard();
+                if (onView) {
+                    nodeAction(obj.get("updateDevice").toString(), obj.get("status").toString());
+                } else {
+                    Log.i(TAG, "> Call: No");
+                }
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            wakeAndUnlock(false);
         }
-        else {
-            //锁屏
-            kl.reenableKeyguard();
+    };
 
-            //释放wakeLock，关灯
-            wl.release();
+    private Emitter.Listener onDisconnect = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            Log.i(TAG, "断开连接 " + args[0]);
+            mSocket.emit("android", "onAccessibilityEvent OFFLINE");
         }
+    };
 
+    private Emitter.Listener onConnectError = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            Log.i(TAG, "连接失败" + args[0]);
+            networkTest();
+            onSocketFail();
+        }
+    };
+
+    private Emitter.Listener onConnectTimeoutError = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            Log.i(TAG, "连接超时" + args[0]);
+            networkTest();
+            onSocketFail();
+        }
+    };
+
+
+    private void onSocketFail() {
+        mSocket.off("update", onUpdate);
     }
 
+
+    //锁屏、唤醒相关
+    private PowerManager powerManager;
+    private PowerManager.WakeLock wakeLock;
+
+    // TODO 尋找良好的鎖屏代碼
+    private void wakeAndUnlock(boolean b) {
+        if (b) {
+            //获取电源管理器对象
+            powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+            //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
+            wakeLock = powerManager.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
+
+            //点亮屏幕
+            wakeLock.acquire();
+        } else {
+            //释放wakeLock，关灯
+            wakeLock.release();
+        }
+    }
+
+    /**
+     * 當服務成功激活
+     */
 
     @Override
     protected void onServiceConnected() {
-        Log.i(TAG, "config success!");
-        startAPP("com.xiaomi.smarthome");
-        tellUser("MiHomePlus already.");
+        Log.i(TAG, "> 無障礙設定已經激活！");
+        startApp("com.xiaomi.smarthome");
+        tellUser("MiHomePlus 服務已經激活.");
         initSocketHttp();
+        networkTest();
 
     }
 
-    /*
-     * 启动一个app
+    /**
+     * 網絡信息獲取
      */
-    public void startAPP(String appPackageName) {
+
+    private boolean networkTest() {
+        return false;
+    }
+
+    /*
+     * 打開一個 App
+     */
+    public void startApp(String appPackageName) {
         try {
             Intent intent = this.getPackageManager().getLaunchIntentForPackage(appPackageName);
             startActivity(intent);
@@ -149,7 +195,7 @@ public class MyAccessibility extends AccessibilityService {
 
         if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             preProcess(event);
-            Log.i(TAG, "// : onAccessibilityEvent");
+            Log.i(TAG, "onAccessibilityEvent");
         }
 
 
@@ -176,11 +222,11 @@ public class MyAccessibility extends AccessibilityService {
             boolean onView = gotoView("AndroidAPI");
 
             if (onView) {
-                tellUser("MiHomeKit");
+                tellUser("MiHomePlus");
                 // TODO 改進為配置檔形式
-                nodeAction("空調伴侶","read");
-                nodeAction("電腦燈","read");
-                nodeAction("落地燈","read");
+                nodeAction("空調伴侶", "read");
+                nodeAction("電腦燈", "read");
+                nodeAction("落地燈", "read");
             } else {
                 tellUser("< Mi >");
             }
@@ -198,19 +244,19 @@ public class MyAccessibility extends AccessibilityService {
         AccessibilityNodeInfo source = getRootInActiveWindow();
 
         if (!source.getPackageName().equals("com.xiaomi.smarthome")) {
-            startAPP("com.xiaomi.smarthome");
+            startApp("com.xiaomi.smarthome");
         }
 
-        List < AccessibilityNodeInfo > viewTitle = source.findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/module_a_2_more_title");
+        List<AccessibilityNodeInfo> viewTitle = source.findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/module_a_2_more_title");
 
         if (!titleCheck(lookingTitle, viewTitle)) {
-            List < AccessibilityNodeInfo > menuBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/drawer_btn");
+            List<AccessibilityNodeInfo> menuBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/drawer_btn");
             doClick(menuBtn);
-            List < AccessibilityNodeInfo > backBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.plugseat:id/title_bar_return");
+            List<AccessibilityNodeInfo> backBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.plugseat:id/title_bar_return");
             doClick(backBtn);
-            List < AccessibilityNodeInfo > apiBtn = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingTitle);
+            List<AccessibilityNodeInfo> apiBtn = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingTitle);
             if (apiBtn != null)
-                for (AccessibilityNodeInfo n: apiBtn) {
+                for (AccessibilityNodeInfo n : apiBtn) {
                     n.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 }
             return false;
@@ -221,10 +267,10 @@ public class MyAccessibility extends AccessibilityService {
 
     }
 
-    /*
+    /**
      * 標題檢查，配合
      */
-    private boolean titleCheck(String title, List < AccessibilityNodeInfo > viewTitle) {
+    private boolean titleCheck(String title, List<AccessibilityNodeInfo> viewTitle) {
 
         if (viewTitle != null && !viewTitle.isEmpty()) {
             AccessibilityNodeInfo node;
@@ -242,9 +288,14 @@ public class MyAccessibility extends AccessibilityService {
         return false;
     }
 
-    private void doClick(List < AccessibilityNodeInfo > infos) {
+    /**
+     * 執行點擊
+     *
+     * @param infos
+     */
+    private void doClick(List<AccessibilityNodeInfo> infos) {
         if (infos != null)
-            for (AccessibilityNodeInfo info: infos) {
+            for (AccessibilityNodeInfo info : infos) {
                 if (info.isEnabled() && info.isClickable()) {
                     Log.i(TAG, "> doClick: " + info.getText());
                     info.performAction(AccessibilityNodeInfo.ACTION_CLICK);
@@ -253,11 +304,16 @@ public class MyAccessibility extends AccessibilityService {
             }
     }
 
-
-    private void nodeAction(String lookingName,String action) {
+    /**
+     * 節點動作
+     *
+     * @param lookingName
+     * @param action
+     */
+    private void nodeAction(String lookingName, String action) {
 
         // 查找基於關鍵字的設備
-        List < AccessibilityNodeInfo > looking = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingName);
+        List<AccessibilityNodeInfo> looking = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingName);
 
         if (looking != null && !looking.isEmpty()) {
 
@@ -268,62 +324,64 @@ public class MyAccessibility extends AccessibilityService {
                 node = looking.get(i);
 
                 // 查找設備狀態
-                List < AccessibilityNodeInfo > parent = node.getParent().findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/info_value");
+                List<AccessibilityNodeInfo> parent = node.getParent().findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/info_value");
 
                 if (parent != null && !parent.isEmpty()) {
 
                     AccessibilityNodeInfo nodeParent;
                     for (int j = 0; j < parent.size(); j++) {
                         nodeParent = parent.get(j);
-                        Log.i(TAG, node.getText() + " 狀態: " + nodeParent.getText() + " 操作: "+action);
+                        Log.i(TAG, "> " + node.getText() + " 狀態: " + nodeParent.getText() + " 操作: " + action);
 
                         // 點擊或者讀取按鈕
                         if (action.equals("read")) {
-                            sync(node.getText().toString(),nodeParent.getText().toString());
+                            sync(node.getText().toString(), nodeParent.getText().toString());
                         } else {
                             if (!nodeParent.getText().toString().equals(action)) {
                                 nodeParent.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
-                                sync(node.getText().toString(),nodeParent.getText().toString());
+                                sync(node.getText().toString(), nodeParent.getText().toString());
                             }
                         }
 
                     }
                 }
 
-                if (i == 0) {
-                    break;
-                }
-
+                break;
             }
         }
 
     }
 
+    /**
+     * 與伺服器同步函數
+     *
+     * @param name
+     * @param status
+     * @return
+     */
     private boolean sync(final String name, final String status) {
 
-        Thread t1 = new Thread(new Runnable(){
-            public void run(){
-                System.out.println("> Server Sync ...");
+        Thread t1 = new Thread(new Runnable() {
+            public void run() {
 
+                System.out.println("Server Sync ... ");
                 URL url;
                 HttpURLConnection urlConnection = null;
                 try {
-                    // TODO URL 封裝為全局函數，配置檔
-                    url = new URL("http://192.168.1.104:3002/sync/"+URLEncoder.encode(name, "UTF-8")+"/"+URLEncoder.encode(status, "UTF-8"));
+                    url = new URL(Hosts + "/sync/" + URLEncoder.encode(name, "UTF-8") + "/" + URLEncoder.encode(status, "UTF-8"));
 
                     urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setRequestProperty("accept", "*/*");
+
                     urlConnection.setRequestProperty("connection", "Keep-Alive");
                     urlConnection.setRequestProperty("user-agent", "HomeKitProxy/1.0 (Android)");
 
                     BufferedReader in = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
                     String line;
-                    for (;(line = in.readLine()) != null;){
-                        System.out.println("> Server Sync ... " + line);
+                    for (; (line = in.readLine()) != null; ) {
+                        System.out.println("> on Server: " + line);
                     }
 
-                    System.out.println("> Server Sync ... end");
-                    Log.i(TAG, "> Server Sync: "+ name + " " + status);
+                    System.out.println("> on Local: " + name + " => " + status);
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {
@@ -340,6 +398,11 @@ public class MyAccessibility extends AccessibilityService {
 
     }
 
+    /**
+     * toast 顯示函數
+     *
+     * @param s
+     */
     private void tellUser(String s) {
         Context context = getApplicationContext();
         CharSequence text = s;
@@ -350,7 +413,9 @@ public class MyAccessibility extends AccessibilityService {
     }
 
     @Override
-    public void onInterrupt() {}
+    public void onInterrupt() {
+    }
+
 
 }
 

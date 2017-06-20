@@ -9,45 +9,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import java.net.URISyntaxException;
-
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
-
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
-    private Socket mSocket;
-
-    /**
-     * Socket
-     */
-    private void initSocketHttp() {
-        try {
-            // TODO URL 封裝為全局函數，配置檔
-            mSocket = IO.socket("http://192.168.1.104:3002");
-        } catch ( URISyntaxException e ) {
-            e.printStackTrace();
-        }
-
-        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                mSocket.emit("android", "AndroidProxy ONLINE");
-            }
-
-        }).on("update", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-
-                Log.i(TAG, "> Call: startHomePlus()");
-                startHomePlus();
-            }
-        });
-
-        mSocket.connect();
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initSocketHttp();
         startHomePlus();
     }
 
@@ -93,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-
 
 
 }
