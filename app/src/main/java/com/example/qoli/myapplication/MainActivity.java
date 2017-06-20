@@ -37,6 +37,13 @@ public class MainActivity extends AppCompatActivity {
                 mSocket.emit("android", "AndroidProxy ONLINE");
             }
 
+        }).on("update", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+
+                Log.i(TAG, "> Call: startHomePlus()");
+                startHomePlus();
+            }
         });
 
         mSocket.connect();
@@ -51,10 +58,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         initSocketHttp();
+        startHomePlus();
+    }
 
+    private void startHomePlus() {
         // Code to start the Service
         startService(new Intent(getApplication(), MyAccessibility.class));
     }
+
 
     // 控件 View 的点击事件
     public void onClick(View v) {
@@ -71,11 +82,11 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(accessibleIntent);
                 break;
             case R.id.AppSetting:
-                intent.setClass(MainActivity.this  , AppSetting.class);
+                intent.setClass(MainActivity.this, AppSetting.class);
                 startActivity(intent);
                 break;
             case R.id.Help:
-                intent.setClass(MainActivity.this  , Help.class);
+                intent.setClass(MainActivity.this, Help.class);
                 startActivity(intent);
                 break;
             default:

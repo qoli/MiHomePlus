@@ -36,9 +36,14 @@ public class MyAccessibility extends AccessibilityService {
      * Socket
      */
     private void initSocketHttp() {
+
+        // TODO https://github.com/socketio/socket.io-client-java/issues/123#issuecomment-96066333
+        // 休眠后會斷線…
+
         try {
             // TODO URL 封裝為全局函數，配置檔
             mSocket = IO.socket("http://192.168.1.104:3002");
+
         } catch ( URISyntaxException e ) {
             e.printStackTrace();
         }
@@ -52,8 +57,10 @@ public class MyAccessibility extends AccessibilityService {
         }).on("update", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                wakeAndUnlock(true);
+
                 Log.i(TAG, "> Call: android action.");
+                wakeAndUnlock(true);
+
                 JSONObject obj = (JSONObject)args[0];
                 try {
                     Log.i(TAG, "updateDevice: "+obj.get("updateDevice"));
@@ -77,7 +84,6 @@ public class MyAccessibility extends AccessibilityService {
 
         mSocket.connect();
     }
-
 
     //锁屏、唤醒相关
     private KeyguardManager  km;
@@ -120,6 +126,7 @@ public class MyAccessibility extends AccessibilityService {
         startAPP("com.xiaomi.smarthome");
         tellUser("MiHomePlus already.");
         initSocketHttp();
+
     }
 
     /*
@@ -165,6 +172,7 @@ public class MyAccessibility extends AccessibilityService {
 
         if (nextNumber == 2) {
 
+            // TODO View 支持指定名稱，配置檔
             boolean onView = gotoView("AndroidAPI");
 
             if (onView) {
@@ -181,6 +189,9 @@ public class MyAccessibility extends AccessibilityService {
 
     }
 
+    /*
+     * 切換到正確的頁面
+     */
     private boolean gotoView(String lookingTitle) {
         // TODO 如果 app 沒有在前台需要兩次發送才成功
 
@@ -210,6 +221,9 @@ public class MyAccessibility extends AccessibilityService {
 
     }
 
+    /*
+     * 標題檢查，配合
+     */
     private boolean titleCheck(String title, List < AccessibilityNodeInfo > viewTitle) {
 
         if (viewTitle != null && !viewTitle.isEmpty()) {
@@ -321,7 +335,6 @@ public class MyAccessibility extends AccessibilityService {
             }
         });
         t1.start();
-
 
         return false;
 
