@@ -61,6 +61,7 @@ public class MyAccessibility extends AccessibilityService {
         });
 
         mSocket.on("update", onUpdate);
+        mSocket.on("Ping", onPing);
 
         mSocket.on(Socket.EVENT_DISCONNECT, onDisconnect);// 断开连接
         mSocket.on(Socket.EVENT_CONNECT_ERROR, onConnectError);// 连接异常
@@ -127,6 +128,18 @@ public class MyAccessibility extends AccessibilityService {
         }
     };
 
+    private Emitter.Listener onPing = new Emitter.Listener() {
+        @Override
+        public void call(final Object... args) {
+            Thread socketThread = new Thread(new Runnable() {
+                public void run() {
+                    System.out.println("Socket.io send Pong ... ");
+                    mSocket.emit("Pong", "Ping");
+                }
+            });
+            socketThread.start();
+        }
+    };
 
     private void onSocketFail() {
         mSocket.off("update", onUpdate);
