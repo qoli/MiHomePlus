@@ -1,7 +1,5 @@
 package com.example.qoli.myapplication;
 
-import java.net.URISyntaxException;
-
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import java.net.URISyntaxException;
 
 import io.socket.client.IO;
 import io.socket.client.Socket;
@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initSocketHttp() {
         try {
+            // TODO URL 封裝為全局函數，配置檔
             mSocket = IO.socket("http://192.168.1.104:3002");
         } catch ( URISyntaxException e ) {
             e.printStackTrace();

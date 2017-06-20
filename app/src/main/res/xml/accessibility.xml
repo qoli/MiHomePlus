@@ -5,5 +5,4 @@
     android:accessibilityFeedbackType="feedbackSpoken"
     android:notificationTimeout="1000"
     android:canRetrieveWindowContent="true"
-    android:packageNames="com.xiaomi.smarthome"
     />

@@ -37,6 +37,7 @@ public class MyAccessibility extends AccessibilityService {
      */
     private void initSocketHttp() {
         try {
+            // TODO URL 封裝為全局函數，配置檔
             mSocket = IO.socket("http://192.168.1.104:3002");
         } catch ( URISyntaxException e ) {
             e.printStackTrace();
@@ -85,8 +86,7 @@ public class MyAccessibility extends AccessibilityService {
     private PowerManager.WakeLock wl;
 
     private void wakeAndUnlock(boolean b) {
-        if(b)
-        {
+        if(b) {
             //获取电源管理器对象
             pm=(PowerManager) getSystemService(Context.POWER_SERVICE);
 
@@ -103,8 +103,7 @@ public class MyAccessibility extends AccessibilityService {
             //解锁
             kl.disableKeyguard();
         }
-        else
-        {
+        else {
             //锁屏
             kl.reenableKeyguard();
 
@@ -140,61 +139,18 @@ public class MyAccessibility extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
         int eventType = event.getEventType();
-        String eventText = null;
-        switch (eventType) {
-            case AccessibilityEvent.TYPE_VIEW_CLICKED:
-                eventText = "TYPE_VIEW_CLICKED";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_FOCUSED:
-                eventText = "TYPE_VIEW_FOCUSED";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
-                eventText = "TYPE_VIEW_LONG_CLICKED";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_SELECTED:
-                eventText = "TYPE_VIEW_SELECTED";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED:
-                eventText = "TYPE_VIEW_TEXT_CHANGED";
-                break;
-            case AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED:
-                eventText = "TYPE_WINDOW_STATE_CHANGED";
-                break;
-            case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
-                eventText = "TYPE_NOTIFICATION_STATE_CHANGED";
-                break;
-            case AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_END:
-                eventText = "TYPE_TOUCH_EXPLORATION_GESTURE_END";
-                break;
-            case AccessibilityEvent.TYPE_ANNOUNCEMENT:
-                eventText = "TYPE_ANNOUNCEMENT";
-                break;
-            case AccessibilityEvent.TYPE_TOUCH_EXPLORATION_GESTURE_START:
-                eventText = "TYPE_TOUCH_EXPLORATION_GESTURE_START";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_HOVER_ENTER:
-                eventText = "TYPE_VIEW_HOVER_ENTER";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_HOVER_EXIT:
-                eventText = "TYPE_VIEW_HOVER_EXIT";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_SCROLLED:
-                eventText = "TYPE_VIEW_SCROLLED";
-                break;
-            case AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED:
-                eventText = "TYPE_VIEW_TEXT_SELECTION_CHANGED";
-                break;
-            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED:
-                // 重要的
-                eventText = "TYPE_WINDOW_CONTENT_CHANGED";
-                preProcess(event);
-                break;
+
+        if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
+            preProcess(event);
+            Log.i(TAG, "// : onAccessibilityEvent");
         }
 
-//        Log.i(TAG, "// :" + eventText);
 
     }
 
+    /*
+     * 處理……
+     */
     private void preProcess(AccessibilityEvent event) {
 
         int nextNumber = 0;
@@ -213,6 +169,7 @@ public class MyAccessibility extends AccessibilityService {
 
             if (onView) {
                 tellUser("MiHomeKit");
+                // TODO 改進為配置檔形式
                 nodeAction("空調伴侶","read");
                 nodeAction("電腦燈","read");
                 nodeAction("落地燈","read");
@@ -225,8 +182,14 @@ public class MyAccessibility extends AccessibilityService {
     }
 
     private boolean gotoView(String lookingTitle) {
+        // TODO 如果 app 沒有在前台需要兩次發送才成功
 
         AccessibilityNodeInfo source = getRootInActiveWindow();
+
+        if (!source.getPackageName().equals("com.xiaomi.smarthome")) {
+            startAPP("com.xiaomi.smarthome");
+        }
+
         List < AccessibilityNodeInfo > viewTitle = source.findAccessibilityNodeInfosByViewId("com.xiaomi.smarthome:id/module_a_2_more_title");
 
         if (!titleCheck(lookingTitle, viewTitle)) {
@@ -331,6 +294,7 @@ public class MyAccessibility extends AccessibilityService {
                 URL url;
                 HttpURLConnection urlConnection = null;
                 try {
+                    // TODO URL 封裝為全局函數，配置檔
                     url = new URL("http://192.168.1.104:3002/sync/"+URLEncoder.encode(name, "UTF-8")+"/"+URLEncoder.encode(status, "UTF-8"));
 
                     urlConnection = (HttpURLConnection) url.openConnection();
