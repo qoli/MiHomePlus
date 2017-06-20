@@ -1,8 +1,11 @@
 package com.example.qoli.myapplication;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.KeyguardManager;
+import android.app.KeyguardManager.KeyguardLock;
 import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -48,6 +51,7 @@ public class MyAccessibility extends AccessibilityService {
         }).on("update", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
+                wakeAndUnlock(true);
                 Log.i(TAG, "> Call: android action.");
                 JSONObject obj = (JSONObject)args[0];
                 try {
@@ -59,16 +63,55 @@ public class MyAccessibility extends AccessibilityService {
                     if (onView) {
                         nodeAction(obj.get("updateDevice").toString(),obj.get("status").toString());
                     } else {
-                        tellUser("< NO >");
+                        Log.i(TAG, "> Call: No");
                     }
 
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+
+                wakeAndUnlock(false);
             }
         });
 
         mSocket.connect();
+    }
+
+
+    //锁屏、唤醒相关
+    private KeyguardManager  km;
+    private KeyguardLock kl;
+    private PowerManager pm;
+    private PowerManager.WakeLock wl;
+
+    private void wakeAndUnlock(boolean b) {
+        if(b)
+        {
+            //获取电源管理器对象
+            pm=(PowerManager) getSystemService(Context.POWER_SERVICE);
+
+            //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
+            wl = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "bright");
+
+            //点亮屏幕
+            wl.acquire();
+
+            //得到键盘锁管理器对象
+            km= (KeyguardManager)getSystemService(Context.KEYGUARD_SERVICE);
+            kl = km.newKeyguardLock("unLock");
+
+            //解锁
+            kl.disableKeyguard();
+        }
+        else
+        {
+            //锁屏
+            kl.reenableKeyguard();
+
+            //释放wakeLock，关灯
+            wl.release();
+        }
+
     }
 
 
