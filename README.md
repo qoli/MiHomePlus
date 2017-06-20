@@ -10,9 +10,9 @@ MiHomePlus 是一個 Android App。
 
 http://staticshare.5mlstudio.com/img-5168-mov(2017-06-20T08:13:45+08:00).mov
 
+### 圖片：
 
-
-![FullSizeRender 2](./README/FullSizeRender 2.jpg)
+![FullSizeRender 2](./README/FullSizeRender2.jpg)
 
 ![FullSizeRender](./README/FullSizeRender.jpg)
 
