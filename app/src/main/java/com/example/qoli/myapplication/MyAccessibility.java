@@ -267,7 +267,6 @@ public class MyAccessibility extends AccessibilityService {
                             }
                         }
 
-
                     }
                 }
 
