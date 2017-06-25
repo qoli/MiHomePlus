@@ -19,6 +19,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +34,22 @@ public class MyAccessibility extends AccessibilityService {
     private int Pong = 0;
     private Socket mSocket;
 
+    Timer timer = new Timer(true);
+
+    private class PingPong extends TimerTask {
+        public void run() {
+            Pong++;
+
+            if (Pong == 30) {
+                onSocketFail();
+            }
+            System.out.println("Socket.io send Pong ... " + Pong);
+            mSocket.emit("Pong", "Ping " + Pong);
+        }
+    }
+
+    ;
+
     /**
      * pidcat com.example.qoli.myapplication -l I
      * terminal 指令
@@ -42,14 +60,14 @@ public class MyAccessibility extends AccessibilityService {
      */
     private void initSocketHttp() {
 
-        // TODO https://github.com/socketio/socket.io-client-java/issues/123#issuecomment-96066333
-        // 休眠后會斷線…
+        // 休眠后會斷線… 》因為小米手機的神隱模式「https://kknews.cc/tech/zpav83.html」
+        //
 
         try {
             IO.Options options = new IO.Options();
-            options.timeout = 60 * 1000;
+            //options.timeout = 60 * 1000;
             options.reconnection = true;
-            mSocket = IO.socket(Hosts,options);
+            mSocket = IO.socket(Hosts, options);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -61,6 +79,8 @@ public class MyAccessibility extends AccessibilityService {
 
         mSocket.on("update", onUpdate);
         mSocket.on("Ping", onPing);
+
+//        timer.schedule(new PingPong(), 5000, 5000);
 
         mSocket.connect();
     }
@@ -137,8 +157,8 @@ public class MyAccessibility extends AccessibilityService {
             Thread socketThread = new Thread(new Runnable() {
                 public void run() {
                     Pong++;
-                    System.out.println("Socket.io send Pong ... " + Pong);
-                    mSocket.emit("Pong", "Ping");
+                    System.out.println("Socket.io Reply Pong ... " + Pong);
+                    mSocket.emit("Pong", "Ping " + Pong);
                 }
             });
             socketThread.start();
@@ -146,10 +166,11 @@ public class MyAccessibility extends AccessibilityService {
     };
 
     private void onSocketFail() {
-        wakeAndUnlock(true);
-        startApp("com.xiaomi.smarthome");
+        //wakeAndUnlock(true);
+        //startApp("com.xiaomi.smarthome");
+        mSocket.disconnect();
         initSocketHttp();
-        wakeAndUnlock(false);
+        //wakeAndUnlock(false);
     }
 
 
@@ -275,7 +296,7 @@ public class MyAccessibility extends AccessibilityService {
             List<AccessibilityNodeInfo> backBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.plugseat:id/title_bar_return");
             doClick(backBtn);
             List<AccessibilityNodeInfo> apiBtn = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingTitle);
-            if (apiBtn != null)
+            if (apiBtn != null && apiBtn.equals(""))
                 for (AccessibilityNodeInfo n : apiBtn) {
                     n.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 }
