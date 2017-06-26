@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -58,7 +59,7 @@ public class MyAccessibility extends AccessibilityService {
 
         // 從配置文件讀取伺服器地址
         SharedPreferences settings = getSharedPreferences(data, 0);
-        Hosts = settings.getString(addressField,"");
+        Hosts = settings.getString(addressField, "");
 
         Log.i(TAG, "initSocketHttp: Hosts: " + Hosts);
 
@@ -107,7 +108,7 @@ public class MyAccessibility extends AccessibilityService {
                 if (onView) {
                     nodeAction(obj.get("updateDevice").toString(), obj.get("status").toString());
                 } else {
-                    mSocket.emit("android", "Device: "+obj.get("updateDevice").toString()+" Action:"+obj.get("status").toString() + " > Failed");
+                    mSocket.emit("android", "Device: " + obj.get("updateDevice").toString() + " Action:" + obj.get("status").toString() + " > Failed");
                     Log.i(TAG, "> Call: No");
                 }
 
@@ -210,9 +211,6 @@ public class MyAccessibility extends AccessibilityService {
     }
 
 
-
-
-
     /*
      * 打開一個 App
      */
@@ -230,8 +228,8 @@ public class MyAccessibility extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
         SharedPreferences settings = getSharedPreferences(data, 0);
-        settingRoom = settings.getString(settingRoomField,"");
-        settingDevices = settings.getString(settingDevicesField,"");
+        settingRoom = settings.getString(settingRoomField, "");
+        settingDevices = settings.getString(settingDevicesField, "");
 
         if (settingRoom.equals("") || settingDevices.equals("")) {
             tellUser("配置檔不完整");
@@ -269,7 +267,7 @@ public class MyAccessibility extends AccessibilityService {
                 tellUser("(≧▽≦)");
 
                 String[] parts = settingDevices.split(";");
-                for (String part:parts) {
+                for (String part : parts) {
                     nodeAction(part, "read");
                 }
 
@@ -453,14 +451,25 @@ public class MyAccessibility extends AccessibilityService {
     /**
      * toast 顯示函數
      */
-    private void tellUser(String s) {
-        if (toast != null) toast.cancel();
+    private void tellUser(final String s) {
+        final CharSequence text = s;
+        new Thread() {
+            public void run() {
+                Looper.prepare();
+                if (toast != null) toast.cancel();
 
-        Context context = getApplicationContext();
-        CharSequence text = s;
-        int duration = Toast.LENGTH_SHORT;
-        toast = Toast.makeText(context, text, duration);
-        toast.show();
+                Context context = getApplicationContext();
+
+                int duration = Toast.LENGTH_SHORT;
+                toast = Toast.makeText(context, text, duration);
+                toast.show();
+                Looper.loop();
+            }
+        }.start();
+    }
+
+    private void showToast() {
+
     }
 
     @Override
