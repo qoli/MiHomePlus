@@ -29,12 +29,20 @@ import io.socket.emitter.Emitter;
 
 public class MyAccessibility extends AccessibilityService {
     private static final String TAG = "MyAccessibility";
-    private static String Hosts = "http://192.168.1.100:3002";
-    private int Pong = 0;
-    private Socket mSocket;
-    private String viewName = "AndroidAPI";
     private static final String data = "DATA";
     private static final String addressField = "ADDRESS";
+    private static final String settingRoomField = "ROOM";
+    private static final String settingDevicesField = "DEVICES";
+
+    // 程序內變量
+    private int Pong = 0;
+    private Socket mSocket;
+    private Toast toast = null;
+
+    // 從配置讀取變量
+    private static String Hosts = "http://192.168.1.100:3002";
+    private String settingRoom = "";
+    private String settingDevices = "";
 
     /**
      * pidcat com.example.qoli.myapplication -l I
@@ -94,7 +102,7 @@ public class MyAccessibility extends AccessibilityService {
                 Log.i(TAG, "updateDevice: " + obj.get("updateDevice"));
                 Log.i(TAG, "status: " + obj.get("status"));
 
-                boolean onView = gotoView(viewName);
+                boolean onView = gotoView(settingRoom);
 
                 if (onView) {
                     nodeAction(obj.get("updateDevice").toString(), obj.get("status").toString());
@@ -154,7 +162,6 @@ public class MyAccessibility extends AccessibilityService {
 
     private void onSocketFail() {
         wakeAndUnlock(true);
-        //startApp("com.xiaomi.smarthome");
         mSocket.disconnect();
         initSocketHttp();
         wakeAndUnlock(false);
@@ -202,6 +209,10 @@ public class MyAccessibility extends AccessibilityService {
         return false;
     }
 
+
+
+
+
     /*
      * 打開一個 App
      */
@@ -218,13 +229,20 @@ public class MyAccessibility extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
 
-        int eventType = event.getEventType();
+        SharedPreferences settings = getSharedPreferences(data, 0);
+        settingRoom = settings.getString(settingRoomField,"");
+        settingDevices = settings.getString(settingDevicesField,"");
 
+        if (settingRoom.equals("") || settingDevices.equals("")) {
+            tellUser("配置檔不完整");
+            return;
+        }
+
+        int eventType = event.getEventType();
         if (eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
             preProcess(event);
             Log.i(TAG, "onAccessibilityEvent");
         }
-
 
     }
 
@@ -245,17 +263,18 @@ public class MyAccessibility extends AccessibilityService {
 
         if (nextNumber == 2) {
 
-            boolean onView = gotoView(viewName);
+            boolean onView = gotoView(settingRoom);
 
             if (onView) {
-                tellUser("MiHomePlus");
-                // TODO 改進為配置檔形式
-                nodeAction("空調伴侶", "read");
-                nodeAction("電腦燈", "read");
-                nodeAction("落地燈", "read");
-                nodeAction("客廳空氣淨化器", "read");
+                tellUser("(≧▽≦)");
+
+                String[] parts = settingDevices.split(";");
+                for (String part:parts) {
+                    nodeAction(part, "read");
+                }
+
             } else {
-                tellUser("< Mi >");
+                tellUser("< Processing... >");
             }
 
         }
@@ -267,6 +286,12 @@ public class MyAccessibility extends AccessibilityService {
      */
     private boolean gotoView(String lookingTitle) {
         // TODO 如果 app 沒有在前台需要兩次發送才成功
+
+        if (lookingTitle.equals("")) {
+            tellUser("配置檔不完整");
+            Log.i(TAG, "gotoView: Title 為空");
+            return false;
+        }
 
         AccessibilityNodeInfo source = getRootInActiveWindow();
 
@@ -391,7 +416,6 @@ public class MyAccessibility extends AccessibilityService {
 
         Thread t1 = new Thread(new Runnable() {
             public void run() {
-
                 System.out.println("Server Sync ... ");
                 URL url;
                 HttpURLConnection urlConnection = null;
@@ -428,15 +452,14 @@ public class MyAccessibility extends AccessibilityService {
 
     /**
      * toast 顯示函數
-     *
-     * @param s
      */
     private void tellUser(String s) {
+        if (toast != null) toast.cancel();
+
         Context context = getApplicationContext();
         CharSequence text = s;
         int duration = Toast.LENGTH_SHORT;
-
-        Toast toast = Toast.makeText(context, text, duration);
+        toast = Toast.makeText(context, text, duration);
         toast.show();
     }
 

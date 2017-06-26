@@ -6,6 +6,7 @@
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
     <string name="address_tips">地址格式一般以 http://192.168.1.100:3002 的格式出現，\n請使用基於 https://github.com/qoli/MiPlusServer 搭建的伺服器。</string>
+    <string name="setting_tips">http://ADDRESS/setting</string>
     <string name="saveAddressErrorText">數據格式錯誤，請使用 http://192.168.1.100:3002 的類似格式。</string>
     <string name="saveDone">數據已經提交</string>
 </resources>

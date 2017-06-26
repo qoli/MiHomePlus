@@ -11,8 +11,8 @@
         android:layout_width="368dp"
         android:layout_height="495dp"
         android:orientation="vertical"
-        tools:layout_editor_absoluteY="8dp"
-        tools:layout_editor_absoluteX="8dp">
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp">
 
         <TextView
             android:layout_width="match_parent"
@@ -50,25 +50,86 @@
             android:id="@+id/SaveSetting"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="保存設定"
-            android:onClick="onClick"
             android:layout_marginBottom="0dp"
             android:layout_marginLeft="25dp"
             android:layout_marginRight="25dp"
             android:layout_marginTop="25dp"
-            />
+            android:onClick="onClick"
+            android:text="保存設定" />
+
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="1px"
+            android:layout_marginBottom="0dp"
+            android:layout_marginTop="25dp"
+            android:background="@android:color/darker_gray" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="25dp"
+            android:text="從服務器同步配置檔："
+            android:textAlignment="viewStart" />
+
+        <TextView
+            android:id="@+id/textViewTips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/setting_tips"
+            android:textSize="10sp" />
+
+        <Button
+            android:id="@+id/getSetting"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"
+            android:layout_marginTop="5dp"
+            android:onClick="onClick"
+            android:text="讀取配置檔案" />
+
+        <TextView
+            android:id="@+id/roomField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="5dp"
+            android:text="房間名稱"
+            android:textSize="10sp" />
+
+        <TextView
+            android:id="@+id/devicesField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="5dp"
+            android:text="設備列表"
+            android:textSize="10sp" />
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:srcCompat="@mipmap/ic_back"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom"
             android:layout_marginBottom="0dp"
             android:layout_marginLeft="25dp"
             android:layout_marginRight="25dp"
             android:layout_marginTop="25dp"
-            />
-
+            android:scaleType="fitCenter"
+            android:textAlignment="textEnd"
+            app:srcCompat="@mipmap/screen" />
 
 
     </LinearLayout>
