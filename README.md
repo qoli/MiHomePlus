@@ -92,3 +92,11 @@ host 必須經過 urlencode 才可正常工作。
   "off_body": "OFF"
 }
 ```
+## 筆記命令
+
+terminal 指令
+
+```shell
+pidcat com.example.qoli.myapplication -l I
+```
+

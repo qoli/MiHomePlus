@@ -64,10 +64,10 @@ public class MyAccessibility extends AccessibilityService {
         //
 
         try {
-            IO.Options options = new IO.Options();
-            //options.timeout = 60 * 1000;
-            options.reconnection = true;
-            mSocket = IO.socket(Hosts, options);
+//            IO.Options options = new IO.Options();
+//            //options.timeout = 60 * 1000;
+//            options.reconnection = true;
+            mSocket = IO.socket(Hosts);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -92,7 +92,7 @@ public class MyAccessibility extends AccessibilityService {
     private Emitter.Listener onConnect = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
-            mSocket.emit("android", "onAccessibilityEvent ONLINE");
+            mSocket.emit("android", "MiHomePlus ONLINE");
         }
     };
 
@@ -128,7 +128,7 @@ public class MyAccessibility extends AccessibilityService {
         @Override
         public void call(Object... args) {
             Log.i(TAG, "断开连接 " + args[0]);
-            mSocket.emit("android", "onAccessibilityEvent OFFLINE");
+            mSocket.emit("android", "MiHomePlus OFFLINE");
             onSocketFail();
         }
     };
@@ -166,11 +166,11 @@ public class MyAccessibility extends AccessibilityService {
     };
 
     private void onSocketFail() {
-        //wakeAndUnlock(true);
+        wakeAndUnlock(true);
         //startApp("com.xiaomi.smarthome");
         mSocket.disconnect();
         initSocketHttp();
-        //wakeAndUnlock(false);
+        wakeAndUnlock(false);
     }
 
 
@@ -296,7 +296,8 @@ public class MyAccessibility extends AccessibilityService {
             List<AccessibilityNodeInfo> backBtn = source.findAccessibilityNodeInfosByViewId("com.xiaomi.plugseat:id/title_bar_return");
             doClick(backBtn);
             List<AccessibilityNodeInfo> apiBtn = getRootInActiveWindow().findAccessibilityNodeInfosByText(lookingTitle);
-            if (apiBtn != null && apiBtn.equals(""))
+            Log.i(TAG, "gotoView: " + apiBtn);
+            if (apiBtn != null)
                 for (AccessibilityNodeInfo n : apiBtn) {
                     n.getParent().performAction(AccessibilityNodeInfo.ACTION_CLICK);
                 }
