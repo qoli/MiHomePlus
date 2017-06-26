@@ -45,6 +45,7 @@ public class AppSetting extends AppCompatActivity {
         String text = address.getText().toString();
 
         if (checkAddress(text)) {
+
             settings.edit()
                     .putString(addressField,text)
                     .apply();
