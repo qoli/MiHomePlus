@@ -21,19 +21,30 @@
             android:layout_marginLeft="30dp"
             android:layout_marginRight="30dp"
             android:layout_marginTop="25dp"
-            android:text="監視設備："
+            android:text="伺服器地址："
             android:textAlignment="viewStart" />
 
         <EditText
-            android:id="@+id/editText"
+            android:id="@+id/addressField"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="0dp"
             android:layout_marginLeft="25dp"
             android:layout_marginRight="25dp"
             android:layout_marginTop="0dp"
-            android:hint="分行以添加多個設備"
-            android:inputType="textMultiLine" />
+            android:hint="http://192.168.1.2:3002"
+            android:inputType="textPersonName" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
+            android:layout_marginTop="5dp"
+            android:text="@string/address_tips"
+            android:textSize="10sp" />
 
         <Button
             android:id="@+id/SaveSetting"
@@ -57,6 +68,7 @@
             android:layout_marginRight="25dp"
             android:layout_marginTop="25dp"
             />
+
 
 
     </LinearLayout>

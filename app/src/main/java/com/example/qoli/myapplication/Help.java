@@ -17,7 +17,7 @@ public class Help extends AppCompatActivity {
 
         WebView webview = (WebView)findViewById(R.id.WebView);
         webview.getSettings().setJavaScriptEnabled(true);
-        webview.loadUrl("https://www.5mlstudio.com");
+        webview.loadUrl("https://github.com/qoli/MiHomePlus/blob/master/README.md");
 
     }
 

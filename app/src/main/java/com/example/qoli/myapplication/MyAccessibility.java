@@ -3,6 +3,7 @@ package com.example.qoli.myapplication;
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.PowerManager;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
@@ -19,8 +20,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,25 +29,12 @@ import io.socket.emitter.Emitter;
 
 public class MyAccessibility extends AccessibilityService {
     private static final String TAG = "MyAccessibility";
-    private static final String Hosts = "http://192.168.1.104:3002";
+    private static String Hosts = "http://192.168.1.100:3002";
     private int Pong = 0;
     private Socket mSocket;
-
-    Timer timer = new Timer(true);
-
-    private class PingPong extends TimerTask {
-        public void run() {
-            Pong++;
-
-            if (Pong == 30) {
-                onSocketFail();
-            }
-            System.out.println("Socket.io send Pong ... " + Pong);
-            mSocket.emit("Pong", "Ping " + Pong);
-        }
-    }
-
-    ;
+    private String viewName = "AndroidAPI";
+    private static final String data = "DATA";
+    private static final String addressField = "ADDRESS";
 
     /**
      * pidcat com.example.qoli.myapplication -l I
@@ -60,13 +46,15 @@ public class MyAccessibility extends AccessibilityService {
      */
     private void initSocketHttp() {
 
-        // 休眠后會斷線… 》因為小米手機的神隱模式「https://kknews.cc/tech/zpav83.html」
-        //
+        // 休眠后會斷線… 》小米手機的神隱模式「https://kknews.cc/tech/zpav83.html」
+
+        // 從配置文件讀取伺服器地址
+        SharedPreferences settings = getSharedPreferences(data, 0);
+        Hosts = settings.getString(addressField,"");
+
+        Log.i(TAG, "initSocketHttp: Hosts: " + Hosts);
 
         try {
-//            IO.Options options = new IO.Options();
-//            //options.timeout = 60 * 1000;
-//            options.reconnection = true;
             mSocket = IO.socket(Hosts);
         } catch (URISyntaxException e) {
             e.printStackTrace();
@@ -79,8 +67,6 @@ public class MyAccessibility extends AccessibilityService {
 
         mSocket.on("update", onUpdate);
         mSocket.on("Ping", onPing);
-
-//        timer.schedule(new PingPong(), 5000, 5000);
 
         mSocket.connect();
     }
@@ -108,11 +94,12 @@ public class MyAccessibility extends AccessibilityService {
                 Log.i(TAG, "updateDevice: " + obj.get("updateDevice"));
                 Log.i(TAG, "status: " + obj.get("status"));
 
-                boolean onView = gotoView("AndroidAPI");
+                boolean onView = gotoView(viewName);
 
                 if (onView) {
                     nodeAction(obj.get("updateDevice").toString(), obj.get("status").toString());
                 } else {
+                    mSocket.emit("android", "Device: "+obj.get("updateDevice").toString()+" Action:"+obj.get("status").toString() + " > Failed");
                     Log.i(TAG, "> Call: No");
                 }
 
@@ -258,8 +245,7 @@ public class MyAccessibility extends AccessibilityService {
 
         if (nextNumber == 2) {
 
-            // TODO View 支持指定名稱，配置檔
-            boolean onView = gotoView("AndroidAPI");
+            boolean onView = gotoView(viewName);
 
             if (onView) {
                 tellUser("MiHomePlus");
