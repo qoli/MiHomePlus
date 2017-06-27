@@ -1,6 +1,7 @@
 package com.example.qoli.myapplication;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -181,6 +182,13 @@ public class MyAccessibility extends AccessibilityService {
             //获取PowerManager.WakeLock对象，后面的参数|表示同时传入两个值，最后的是调试用的Tag
             wakeLock = powerManager.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_BRIGHT_WAKE_LOCK, TAG);
 
+            // 屏幕解锁
+            KeyguardManager keyguardManager = (KeyguardManager) getSystemService(Context.KEYGUARD_SERVICE);
+            KeyguardManager.KeyguardLock keyguardLock = keyguardManager.newKeyguardLock("unLock");
+
+            keyguardLock.reenableKeyguard();
+            keyguardLock.disableKeyguard(); // 解锁
+
             //点亮屏幕
             wakeLock.acquire();
         } else {
@@ -188,6 +196,7 @@ public class MyAccessibility extends AccessibilityService {
             wakeLock.release();
         }
     }
+
 
     /**
      * 當服務成功激活
@@ -292,6 +301,11 @@ public class MyAccessibility extends AccessibilityService {
         }
 
         AccessibilityNodeInfo source = getRootInActiveWindow();
+
+        if (source == null) {
+            Log.i(TAG, "gotoView: source == null");
+            return false;
+        }
 
         if (!source.getPackageName().equals("com.xiaomi.smarthome")) {
             startApp("com.xiaomi.smarthome");

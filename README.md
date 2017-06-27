@@ -6,6 +6,8 @@ MiHomePlus 是一個 Android App。
 
 從而達到代理米家 App 到 HomeKit 的解決方案。
 
+![FullSizeRender 2](./README/MiHomePlus.png)
+
 
 
 ## APK 下載
@@ -20,17 +22,9 @@ https://github.com/qoli/MiHomePlus/blob/master/INTRODUCTION.md
 
 
 
-## 介紹
-
-### 演示視頻：
+## 演示視頻
 
 http://staticshare.5mlstudio.com/img-5168-mov(2017-06-20T08:13:45+08:00).mov
-
-### 圖片：
-
-![FullSizeRender 2](./README/IMG_5185.JPG)
-
-![FullSizeRender 2](./README/IMG_5182.JPG)
 
 
 
@@ -66,27 +60,13 @@ https://github.com/qoli/MiPlusServer
 
 https://github.com/qoli/MiHomePlus/blob/master/INTRODUCTION.md
 
-
-
-##### 面向于一般用戶
-
 請查看「INTRODUCTION.md」文檔。
 
 
 
-  
+## 使用條件
 
-##### 面向于開發者 / 高階用戶
-
-~~源碼定義了 **http://192.168.1.104:3002** 作為通信服務器。~~
-
-~~源碼 **nodeAction("空調伴侶","read")** 等為 SYNC 的內容。~~
-
-~~透過 MiHomeServer Socket 通信「update」關鍵字，觸發 AccessibilityService 操作開關。~~
-
-~~**當前程序尚未進行配置文檔化。**~~
-
-高級用戶也看 INTRODUCTION.md 吧。
+* 關閉手機的鎖屏程式，調整為開屏幕直接進入界面。
 
 
 
@@ -114,6 +94,17 @@ host 必須經過 urlencode 才可正常工作。
   "off_body": "OFF"
 }
 ```
+
+
+
+## 已知 BUG
+
+- [ ] 紅米 1 會因為 D/OpenGLRenderer: Flushing caches 退出。
+
+
+
+
+
 
 
 ## 筆記
