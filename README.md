@@ -99,10 +99,9 @@ host 必須經過 urlencode 才可正常工作。
 
 ## 已知 BUG
 
-- [ ] 紅米 1 會因為 D/OpenGLRenderer: Flushing caches 退出。
+~~紅米 1 會因為 D/OpenGLRenderer: Flushing caches 退出。~~
 
-
-
+重啟設備后解決了。
 
 
 
